@@ -1,0 +1,162 @@
+FROM ubuntu:20.04
+
+RUN apt-get update && apt-get upgrade -y
+
+RUN export DEBIAN_FRONTEND=noninteractive \
+    && export DEBCONF_NONINTERACTIVE_SEEN=true \
+    && echo tzdata tzdata/Areas select Europe > preseed.txt \
+    && echo tzdata tzdata/Zones/Europe select Moscow >> preseed.txt \
+    && debconf-set-selections preseed.txt \
+    && ln -fs /usr/share/zoneinfo/Europe/Moscow /etc/localtime \
+    && apt-get install -y tzdata \
+    && dpkg-reconfigure --frontend noninteractive tzdata
+
+RUN apt-get install -y \
+    apt-utils \ 
+    software-properties-common
+
+RUN apt-get update \
+    && apt-get upgrade -y
+
+RUN apt-get install -y \
+    zsh \
+    sudo
+
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test && \
+    apt-get update
+
+RUN apt-get install -y \
+    gcc-9 \
+    g++-9
+
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 1
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 1
+
+RUN apt-get install -y \
+    wget \
+    git \
+    curl \
+    autoconf \ 
+    automake \
+    pkg-config \
+    libtool \
+    cmake \
+    ffmpeg \
+    nasm \
+    nano \
+    clang \
+    llvm \
+    gdb
+
+RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+RUN apt-get install -y \
+    libclang-dev \
+    libstdc++-11-dev \
+    libgnutls28-dev \
+    libass-dev \
+    libx264-dev \
+    libx265-dev \
+    libnuma-dev \
+    libvpx-dev \
+    libmp3lame-dev \
+    libopus-dev \
+    libvorbis-dev \
+    libfreetype6-dev \
+    libssl-dev \
+    libjpeg-turbo8-dev \
+    libjpeg8-dev \
+    libexiv2-dev \
+    libcurl4-openssl-dev \
+    libsqlite3-dev \
+    uuid-dev \
+    libxcb-shm0 \
+    libavdevice-dev \
+    libopenblas-dev \
+    liblapack-dev \
+    libunistring-dev \
+    libjpeg-turbo8-dev \
+    libjpeg8-dev \
+    libturbojpeg0-dev
+
+RUN apt-get install -y \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    libgstreamer-plugins-bad1.0-dev \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly \
+    gstreamer1.0-libav \
+    gstreamer1.0-doc \
+    gstreamer1.0-tools \
+    gstreamer1.0-x \
+    gstreamer1.0-alsa \
+    gstreamer1.0-pulseaudio
+
+ARG OPENCV_VERSION=4.5.3
+
+RUN wget https://github.com/opencv/opencv/archive/refs/tags/$OPENCV_VERSION.tar.gz && \
+    tar -xzf $OPENCV_VERSION.tar.gz && \
+    rm $OPENCV_VERSION.tar.gz && \
+    wget https://github.com/opencv/opencv_contrib/archive/refs/tags/$OPENCV_VERSION.tar.gz && \
+    tar -xzf $OPENCV_VERSION.tar.gz && \
+    rm $OPENCV_VERSION.tar.gz && \
+    cd opencv-$OPENCV_VERSION && \
+    cmake -Bbuild . -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_C_FLAGS="-fPIC" \
+    -DOPENCV_EXTRA_MODULES_PATH=../opencv_contrib-$OPENCV_VERSION/modules \
+    -DWITH_FFMPEG=ON \
+    -DWITH_GSTREAMER=ON \
+    -DBUILD_EXAMPLES=OFF \
+    -DBUILD_opencv_apps=OFF \
+    -DBUILD_DOCS=OFF \
+    -DBUILD_PERF_TESTS=OFF \
+    -DBUILD_TESTS=OFF && \
+    cmake --build build --target install -- -j 8 && \
+    cd .. && \
+    rm -rf opencv*
+
+RUN wget http://dist.sofitlabs.ru/aptly.key -O /etc/apt/trusted.gpg.d/aptly.gpg && \
+    echo deb http://dist.sofitlabs.ru focal main | tee -a /etc/apt/sources.list && \
+    apt-get update
+
+RUN apt-get install -y \
+    liblprsdk-dev \ 
+    liblprsdk
+
+RUN wget https://www.baslerweb.com/fp-1615275617/media/downloads/software/pylon_software/pylon_6.2.0.21487-deb0_amd64.deb && \
+    dpkg -i pylon_6.2.0.21487-deb0_amd64.deb && \
+    rm pylon_6.2.0.21487-deb0_amd64.deb
+
+RUN apt-get install -y 
+
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN cargo install cargo-deb
+
+ENV LD_LIBRARY_PATH=/opt/pylon/lib:/usr/local/lib
+
+RUN apt-get install -y \
+    zlib1g-dev \
+    libxxhash-dev 
+
+RUN git clone https://github.com/rui314/mold.git && \
+    cd mold && \
+    git checkout v0.9.6 && \
+    make install -j$(nproc) && \
+    cd .. && \
+    rm -rf mold
+
+RUN cargo install sccache
+
+RUN echo '\
+    [target.x86_64-unknown-linux-gnu]\n\
+    rustflags = [\n\
+    "-C", "link-arg=-fuse-ld=/usr/bin/mold",\n\
+    "-L", "/usr/local/lib",\n\
+    ]\n\
+    linker = "clang"\n\
+    [build]\
+    rustc-wrapper = "/root/.cargo/bin/sccache"'\
+    >> /root/.cargo/config.toml

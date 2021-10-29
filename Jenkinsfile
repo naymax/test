@@ -13,9 +13,9 @@ pipeline {
         }
     }
 
-         stage('Check') {
+         stage('Build') {
          steps{
-          sh "docker ps"
+          sh "docker build -t s0fitlabs/pls-dev:0.1-ubuntu20.04-amd64 -f ubuntu20.04-amd64 ."
          }
      }
 
