@@ -9,7 +9,7 @@ pipeline {
 
      stage('Clone repository') {
         steps{
-             git branch: "${params.BRANCH}", url: 'git@github.com:dmitrii-saprin/test.git', credentialsId: 'jenkins'
+             git branch: "${params.BRANCH}", url: 'https://github.com/dmitrii-saprin/test.git', credentialsId: 'jenkins'
         }
     }
 
