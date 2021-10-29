@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'Worker-1' }
+    agent { label 'Worker-2' }
 
     parameters {
     gitParameter branchFilter: 'origin/(.*)', defaultValue: 'master', name: 'BRANCH', type: 'PT_BRANCH'
