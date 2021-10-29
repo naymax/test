@@ -19,12 +19,21 @@ pipeline {
          }
      }
 
+         stage('Push') {
+         steps{
+          sh "docker push s0fitlabs/pls-dev:0.1-ubuntu20.04-amd64"
+         }
+     }
 
+         stage('Delete image') {
+         steps{
+          sh "docker rmi s0fitlabs/pls-dev:0.1-ubuntu20.04-amd64 || true "
+         }
+     }
 
   }
-
          post {
-        always {
+         always {
             cleanWs()
         }
     }
