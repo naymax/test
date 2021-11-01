@@ -20,7 +20,7 @@ pipeline {
 
              stage ('Delete Image') {
              when {
-                     expression { params.REQUESTED_ACTION == 'Yes' }
+                     expression { params.DELETE_IMAGE_?) == 'Yes' }
              }
              steps {
                  echo 'Deleting image'
