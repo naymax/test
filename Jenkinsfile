@@ -13,9 +13,19 @@ pipeline {
         }
     }
 
-         stage('Delete image') {
-         steps{
-          sh "docker rmi s0fitlabs/pls-dev:0.1-ubuntu20.04-amd64 || true "
+//          stage('Delete image') {
+//          steps{
+//           sh "docker rmi s0fitlabs/pls-dev:0.1-ubuntu20.04-amd64 || true "
+//          }
+
+             stage ('Delete Image') {
+             when {
+                     expression { params.REQUESTED_ACTION == 'Delete_Image' }
+             }
+             steps {
+                 echo 'Deleting image'
+                 sh "docker rmi s0fitlabs/pls-dev:0.1-ubuntu20.04-amd64"
+             }
          }
      }
 
