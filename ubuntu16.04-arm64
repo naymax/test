@@ -216,7 +216,7 @@ RUN git clone --branch v19.21 https://github.com/davisking/dlib dlib_src && \
     cd .. && \
     rm -rf dlib_src
 
-RUN apt-get install -y
+RUN apt-get install -y \
     liblprsdk-tx2-xenial-dev \ 
     liblprsdk-tx2-xenial
 
