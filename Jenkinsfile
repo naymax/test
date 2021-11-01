@@ -24,7 +24,7 @@ pipeline {
              }
              steps {
                  echo 'Deleting image'
-                 sh "docker rmi s0fitlabs/pls-dev:0.1-ubuntu20.04-amd64"
+                 sh "docker rmi s0fitlabs/pls-dev:0.1-ubuntu20.04-amd64 || true"
              }
          }
 
